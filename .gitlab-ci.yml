@@ -1,0 +1,54 @@
+stages:         
+  - build
+  - run
+
+task-build-java:
+  stage: build
+  tags: 
+    - java-app
+  image: openjdk:8-jdk
+  script:     
+    - javac Part1Java/src/main/java/Main.java
+  artifacts:
+    paths:
+       - Part1Java/src/main/java/Main.class
+
+task-run-java:
+  stage: run
+  tags: 
+    - java-app
+  variables:
+    SIZE_ARRAY: "8"
+  needs: ["task-build-java"]
+  dependencies:
+    - task-build-java
+  image: openjdk:8-jdk
+  script:     
+    - java -classpath Part1Java/src/main/java Main $SIZE_ARRAY > result.txt
+  artifacts:
+    paths:
+       - result.txt     
+
+task-python:
+  stage: build
+  tags: 
+    - docker-compose
+  image: tmaier/docker-compose:latest
+  services:
+  - docker:20.10.16-dind
+  before_script:
+  - ls
+  - docker-compose --version
+  script:     
+    - echo START TEST!!!
+    - docker info
+    - docker-compose -version
+    - docker-compose up -d
+    - docker-compose logs client
+    - docker-compose logs --no-log-prefix client > result.txt
+    - docker-compose stop
+    - docker-compose rm -f
+  artifacts:
+    paths:
+       - result.txt
+
